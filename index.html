@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Трансфузійна терапія – v1.0 (пре-реліз)</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f7; margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: 0 auto; background: white; border-radius: 28px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 24px 28px; }
+        h1 { font-size: 1.8rem; margin-top: 0; color: #1a3e60; }
+        .sub { color: #2c6e9e; border-left: 4px solid #2c6e9e; padding-left: 16px; margin-bottom: 24px; font-weight: 500; }
+        .grid-3 { display: flex; flex-wrap: wrap; gap: 20px; }
+        .panel { flex: 1; min-width: 280px; background: #f9fbfd; border-radius: 20px; padding: 16px 18px; border: 1px solid #e2edf2; }
+        .panel h2 { font-size: 1.1rem; margin-top: 0; color: #1f5e8c; border-bottom: 2px solid #cbdde6; padding-bottom: 6px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; margin-bottom: 3px; color: #1f3b4a; font-size: 0.85rem; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #bdd3e0; border-radius: 10px; font-size: 0.9rem; }
+        input:focus { border-color: #2c6e9e; outline: none; box-shadow: 0 0 0 3px rgba(44,110,158,0.15); }
+        .radio-group { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .radio-group label { display: inline-flex; align-items: center; gap: 5px; font-weight: normal; margin-bottom: 0; font-size: 0.85rem; }
+        .amputation-section { background: #ffffff; border-radius: 16px; padding: 10px 14px; margin-top: 10px; border: 1px solid #e0eef5; max-height: 380px; overflow-y: auto; }
+        .limb-row { margin-bottom: 12px; border-bottom: 1px dashed #cce0ea; padding-bottom: 10px; }
+        .limb-title { font-weight: 700; margin: 4px 0 6px 0; color: #1f5e8c; font-size: 0.85rem; }
+        .radio-option-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 3px; }
+        .radio-option-group label { font-weight: normal; display: inline-flex; align-items: center; gap: 3px; background: #f0f4f9; padding: 2px 7px; border-radius: 40px; cursor: pointer; font-size: 0.65rem; }
+        .radio-option-group input { width: auto; margin-right: 2px; transform: scale(1.05); }
+        .limb-note { font-size: 0.6rem; color: #5f7f9a; margin-top: 3px; font-style: italic; }
+        .total-loss { background: #e5f0f9; padding: 5px 10px; border-radius: 40px; font-size: 0.8rem; text-align: center; margin-top: 8px; }
+        button { background: #1f6e43; color: white; border: none; padding: 10px 16px; font-size: 0.95rem; font-weight: bold; border-radius: 40px; cursor: pointer; width: 100%; margin-top: 8px; transition: 0.2s; }
+        button:hover { background: #0f5a38; }
+        .btn-secondary { background: #5f7f9a; margin-top: 6px; }
+        .btn-secondary:hover { background: #3f5e78; }
+        .results { background: #eef4fa; border-radius: 24px; padding: 20px; margin-top: 24px; border-left: 6px solid #1f6e43; display: none; }
+        .result-item { display: flex; justify-content: space-between; flex-wrap: wrap; padding: 5px 0; border-bottom: 1px solid #caddf0; }
+        .result-label { font-weight: 600; color: #1a3e60; font-size: 0.85rem; }
+        .result-value { font-family: monospace; font-weight: 700; font-size: 0.9rem; }
+        .result-group { background: #f8fafc; padding: 8px 12px; border-radius: 10px; margin: 6px 0; border-left: 4px solid #2c6e9e; }
+        .highlight-group { background: #e3f5ec; border-left: 4px solid #1f6e43; padding: 10px 14px; border-radius: 12px; margin: 8px 0; }
+        .massive { background: #fce4e1; border-left: 4px solid #dc3545; padding: 10px 14px; border-radius: 12px; margin: 8px 0; }
+        .warning { padding: 10px; border-radius: 14px; margin-top: 14px; font-size: 0.8rem; }
+        .info { background: #e8f4f8; border-left: 5px solid #2c6e9e; padding: 10px; border-radius: 14px; margin-top: 10px; font-size: 0.75rem; }
+        footer { font-size: 0.65rem; text-align: center; margin-top: 20px; color: #5f7f9a; border-top: 1px solid #e0eef5; padding-top: 12px; }
+        .developer { margin-top: 8px; font-size: 0.7rem; color: #2c6e9e; text-align: center; }
+        .badge { display: inline-block; background: #1f6e43; color: white; font-size: 0.6rem; padding: 2px 10px; border-radius: 40px; margin-left: 6px; }
+        .hint { font-size: 0.65rem; color: #5f7f9a; margin-top: 2px; }
+        .method-note { background: #fef9e7; border-left: 4px solid #f1c40f; padding: 8px 12px; border-radius: 8px; margin: 4px 0; font-size: 0.75rem; }
+        @media (max-width: 850px) { .container { padding: 14px; } .grid-3 { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🩸 Трансфузійна терапія <span class="badge">v1.0 пре-реліз</span></h1>
+    <div class="sub">Методологічний прототип – корекція ОЦК, маси тіла та площі поверхні (власна методика)</div>
+
+    <div class="grid-3">
+        <!-- 1. Основні дані -->
+        <div class="panel">
+            <h2>📋 Основні дані</h2>
+            <div class="form-group">
+                <label>Стать</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="sex" value="male" checked> Чоловік</label>
+                    <label><input type="radio" name="sex" value="female"> Жінка</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Вік (роки)</label>
+                <input type="number" id="age" value="45" step="1" min="18" max="120">
+            </div>
+            <div class="form-group">
+                <label>Зріст до ампутації (см)</label>
+                <input type="number" id="height" value="175" step="0.5" min="100" max="250">
+            </div>
+            <div class="form-group">
+                <label>Поточна вага (кг) <span style="color:#b13c28;">⚠️ без протезів</span></label>
+                <input type="number" id="weight" value="70" step="0.5" min="20" max="300">
+            </div>
+            <div class="form-group">
+                <label>Оцінена крововтрата (мл)</label>
+                <input type="number" id="estimatedBloodLoss" value="500" step="50" min="0" max="10000">
+            </div>
+        </div>
+
+        <!-- 2. Лабораторія -->
+        <div class="panel">
+            <h2>🧪 Лабораторія</h2>
+            <div class="form-group">
+                <label>Гемоглобін (г/л)</label>
+                <input type="number" id="hb" value="90" step="1" min="30" max="220">
+            </div>
+            <div class="form-group">
+                <label>Гематокрит (%)</label>
+                <input type="number" id="ht" value="27" step="1" min="10" max="65">
+            </div>
+            <div class="form-group">
+                <label>Тромбоцити (×10⁹/л)</label>
+                <input type="number" id="plt" value="180" step="5" min="5" max="800">
+            </div>
+            <div class="form-group">
+                <label>МНВ (INR)</label>
+                <input type="number" id="inr" value="1.0" step="0.1" min="0.5" max="10">
+            </div>
+            <div class="form-group">
+                <label>Фібриноген (г/л)</label>
+                <input type="number" id="fibrinogen" value="2.5" step="0.1" min="0.5" max="10">
+            </div>
+            <div class="form-group">
+                <label>Шок-індекс (ЧСС/АТсист)</label>
+                <input type="number" id="shockIndex" value="0.7" step="0.05" min="0.3" max="2.5">
+            </div>
+            <div class="form-group">
+                <label>🎯 Цільовий гемоглобін (г/л)</label>
+                <select id="targetHb">
+                    <option value="70">70 (важка травма)</option>
+                    <option value="80" selected>80 (стандартний)</option>
+                    <option value="90">90 (кардіологічні пацієнти)</option>
+                    <option value="100">100 (хронічна гіпоксія)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 3. Ампутації -->
+        <div class="panel">
+            <h2>🦿 Ампутовані сегменти</h2>
+            <div class="amputation-section">
+                <div class="limb-row">
+                    <div class="limb-title">🦵 Ліва нога</div>
+                    <div class="radio-option-group">
+                        <label><input type="radio" name="left_leg" value="none" checked> Збережена</label>
+                        <label><input type="radio" name="left_leg" value="0.015"> Стопа (1.5%)</label>
+                        <label><input type="radio" name="left_leg" value="0.027"> Гомілка (ниж. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.042"> Гомілка (сер. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.059"> Гомілка (верх. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.087"> Стегно (ниж. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.120"> Стегно (сер. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.148"> Стегно (верх. 1/3)</label>
+                        <label><input type="radio" name="left_leg" value="0.160"> Вся нога</label>
+                    </div>
+                </div>
+                <div class="limb-row">
+                    <div class="limb-title">🦵 Права нога</div>
+                    <div class="radio-option-group">
+                        <label><input type="radio" name="right_leg" value="none" checked> Збережена</label>
+                        <label><input type="radio" name="right_leg" value="0.015"> Стопа (1.5%)</label>
+                        <label><input type="radio" name="right_leg" value="0.027"> Гомілка (ниж. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.042"> Гомілка (сер. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.059"> Гомілка (верх. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.087"> Стегно (ниж. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.120"> Стегно (сер. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.148"> Стегно (верх. 1/3)</label>
+                        <label><input type="radio" name="right_leg" value="0.160"> Вся нога</label>
+                    </div>
+                </div>
+                <div class="limb-row">
+                    <div class="limb-title">💪 Ліва рука</div>
+                    <div class="radio-option-group">
+                        <label><input type="radio" name="left_arm" value="none" checked> Збережена</label>
+                        <label><input type="radio" name="left_arm" value="0.007"> Кисть (0.7%)</label>
+                        <label><input type="radio" name="left_arm" value="0.010"> Передпл. (ниж. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.015"> Передпл. (сер. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.023"> Передпл. (верх. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.030"> Плече (ниж. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.038"> Плече (сер. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.047"> Плече (верх. 1/3)</label>
+                        <label><input type="radio" name="left_arm" value="0.050"> Вся рука</label>
+                    </div>
+                </div>
+                <div class="limb-row">
+                    <div class="limb-title">💪 Права рука</div>
+                    <div class="radio-option-group">
+                        <label><input type="radio" name="right_arm" value="none" checked> Збережена</label>
+                        <label><input type="radio" name="right_arm" value="0.007"> Кисть (0.7%)</label>
+                        <label><input type="radio" name="right_arm" value="0.010"> Передпл. (ниж. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.015"> Передпл. (сер. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.023"> Передпл. (верх. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.030"> Плече (ниж. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.038"> Плече (сер. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.047"> Плече (верх. 1/3)</label>
+                        <label><input type="radio" name="right_arm" value="0.050"> Вся рука</label>
+                    </div>
+                </div>
+            </div>
+            <div id="totalLossDisplay" class="total-loss">📉 Сумарна втрата маси: 0.0%</div>
+            <button type="button" id="clearAmputationsBtn" class="btn-secondary">🗑 Скинути</button>
+        </div>
+    </div>
+
+    <button id="calcBtn">📊 Розрахувати трансфузійну терапію</button>
+
+    <div id="resultsArea" class="results">
+        <h3 style="margin-top:0;">🧾 Результати</h3>
+        <div id="resultContent"></div>
+        <div id="warningMsg" style="display:none;" class="warning"></div>
+        <div class="info">
+            <strong>📐 Методологічна основа v1.0:</strong><br>
+            ▶ <strong>Корекція маси тіла</strong> – унікальна модифікація Osterkamp (2026) з розподілом на третини.<br>
+            ▶ <strong>ОЦК</strong> – за формулою Nadler (1962) з використанням <strong>скоригованої маси тіла</strong> (власна гіпотеза).<br>
+            ▶ <strong>ППТ</strong> – за власною методикою на основі Osterkamp + правило дев'яток (коеф. 1,125 для ніг, 1,8 для рук).<br>
+            ▶ <strong>ABL</strong> = EBV × (Hbᵢ − Hbբ) / Hbᵢ з вибором цільового Hb.<br>
+            ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит маси еритроцитів з урахуванням ОЦК та гематокриту.<br>
+            ▶ <strong>Масивна трансфузія</strong> – SI > 1.0 або крововтрата > 30% ОЦК.
+        </div>
+    </div>
+    <!-- ФУТЕР – НАУКОВІ ДЖЕРЕЛА (виправлений) -->
+<footer>
+    <div class="references">
+        <strong>📚 Методологічна основа калькулятора (наукові джерела):</strong>
+        
+        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">1. Антропометрична корекція – авторська модифікація Osterkamp (2026)</div>
+        <div class="ref-item">Osterkamp L.K. Current perspective on assessment of human body proportions of relevance to amputees. <em>J Am Diet Assoc</em>. 1995;95(2):215–218. <a href="https://doi.org/10.1016/S0002-8223(95)00050-X" target="_blank">DOI: 10.1016/S0002-8223(95)00050-X</a></div>
+        <div class="ref-item">Sydorova N.M. et al. Невирішені питання ведення лікарем терапевтичного профілю пацієнта після ампутації кінцівок... <em>Сучасні аспекти військової медицини</em>. 2025;32(1):129–144. <a href="https://doi.org/10.32751/2310-4910-2025-32-1-11" target="_blank">DOI: 10.32751/2310-4910-2025-32-1-11</a> – <strong>запропонована модифікація розподілу на третини (2026)</strong></div>
+        <div class="ref-item">Sydorova N., Kazmirchuk K., Kolisnyk O. et al. Calculation of Integral Indicators... <em>Acta Medica Lituanica</em>. 2025;32(1):2. <a href="https://doi.org/10.15388/Amed.2025.32.1.2" target="_blank">DOI: 10.15388/Amed.2025.32.1.2</a></div>
+
+        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">2. ОЦК – авторська модель корекції об'єму циркулюючої крові (PATRIOT Blood Volume Adjustment, 2026)</div>
+        <div class="ref-item">Nadler S.B., Hidalgo J.H., Bloch T. Prediction of blood volume in normal human adults. <em>Surgery</em>. 1962;51(2):224–232. – базова формула</div>
+        <div class="ref-item"><strong>Запропонований підхід:</strong> розрахунок ОЦК із використанням скоригованої маси тіла (авторська модель корекції, 2026).</div>
+
+        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">3. ППТ – авторська методика корекції площі поверхні тіла (PATRIOT Surface Area Adjustment, 2026)</div>
+        <div class="ref-item">Du Bois D., Du Bois E.F. A formula to estimate the approximate surface area... <em>Arch Intern Med</em>. 1916;17(6):863–871. – базова формула</div>
+        <div class="ref-item">Chauhan N., Agrawal K., Kumar S. The "Safdarjung Method"... <em>Indian J Plast Surg</em>. 2020;53(2):303–305. <a href="https://doi.org/10.1055/s-0040-1716310" target="_blank">DOI: 10.1055/s-0040-1716310</a></div>
+        <div class="ref-item"><strong>Запропонована методика:</strong> корекція ППТ на основі Osterkamp + правило дев'яток (коеф. 1,125 для ніг, 1,8 для рук).</div>
+
+        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">4. Клінічні рекомендації щодо трансфузійної терапії</div>
+        <div class="ref-item">American College of Surgeons. <em>Advanced Trauma Life Support (ATLS)</em>. 10th ed. 2018. – допустима крововтрата (ABL)</div>
+        <div class="ref-item">Наказ МОЗ України № 1419 від 26.08.2022 «Про затвердження Порядку переливання крові та її компонентів».</div>
+        <div class="ref-item">Allgöwer M., Burri C. Shock index. <em>Dtsch Med Wochenschr</em>. 1967;92(43):1947–1950.</div>
+
+        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">5. Проєкт PATRIOT – клінічна апробація методик</div>
+        <div class="ref-item">Sydorova N.M., Druz O.V., Savytskyi V.L. et al. Primary and secondary prevention... <em>Світ медицини та біології</em>. 2022;1(79):130–134. <a href="https://doi.org/10.26724/2079-8334-2022-1-79-130-134" target="_blank">DOI: 10.26724/2079-8334-2022-1-79-130-134</a></div>
+        <div class="ref-item">Sydorova N.M., Kazmirchuk A.P., Kazmirchuk K.A. et al. Терапевтичні наслідки ампутації... <em>Сучасні аспекти військової медицини</em>. 2023;30(2):162–183. <a href="https://doi.org/10.32751/2310-4910-2023-30-2-16" target="_blank">DOI: 10.32751/2310-4910-2023-30-2-16</a></div>
+
+        <div style="margin-top: 10px; padding: 8px 12px; background: #fef9e7; border-radius: 8px; font-size: 0.7rem; color: #5f7f9a;">
+            ⚠️ <strong>Примітка щодо розрахунку доз ЕРМ:</strong> наведені значення є орієнтовними та не замінюють клінічного рішення лікаря. Остаточне рішення про трансфузію приймається з урахуванням повної клінічної картини, гемодинаміки, динаміки лабораторних показників та наявних протипоказань.
+        </div>
+    </div>
+    <div class="developer">👨‍💻 Розробник онлайн-калькулятора: <strong>Ігор Стельмащук</strong> 📧 smart47785@gmail.com</div>
+</footer>
+</div>
+
+<script>
+    // ============================================================
+    // БАЗОВІ КОНСТАНТИ
+    // ============================================================
+    const lossMap = {
+        foot: 0.015, calf_lower: 0.027, calf_middle: 0.042, calf_upper: 0.059,
+        thigh_lower: 0.087, thigh_middle: 0.120, thigh_upper: 0.148, wholeleg: 0.160,
+        hand: 0.007, forearm_lower: 0.010, forearm_middle: 0.015, forearm_upper: 0.023,
+        upperarm_lower: 0.030, upperarm_middle: 0.038, upperarm_upper: 0.047, wholearm: 0.050
+    };
+    
+    // Коефіцієнти для власної методики ППТ
+    const bsaFactors = { leg: 1.125, arm: 1.8 };
+    
+    // ============================================================
+    // ВСПОМІЖНІ ФУНКЦІЇ
+    // ============================================================
+    function computeTotalLoss() {
+        let total = 0;
+        const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
+        for (let limb of limbs) {
+            const selected = document.querySelector(`input[name="${limb}"]:checked`);
+            if (selected && selected.value !== 'none') {
+                total += parseFloat(selected.value);
+            }
+        }
+        return Math.min(total, 0.95);
+    }
+    
+    // ОЦК за Nadler (з використанням скоригованої маси)
+    function calculateBloodVolume(sex, heightCm, weightKg) {
+        let bv;
+        if (sex === 'male') {
+            bv = 0.3669 * Math.pow(heightCm / 100, 3) + 0.03219 * weightKg + 0.6041;
+        } else {
+            bv = 0.3561 * Math.pow(heightCm / 100, 3) + 0.03308 * weightKg + 0.1833;
+        }
+        return bv * 1000;
+    }
+    
+    // ППТ за Дюбуа (для порівняння)
+    function calculateBSA_DuBois(weightKg, heightCm) {
+        return 0.007184 * Math.pow(weightKg, 0.425) * Math.pow(heightCm, 0.725);
+    }
+    
+    // ВЛАСНА МЕТОДИКА ППТ (Osterkamp + правило дев'яток)
+    function calculateBSA_Own(weightKg, heightCm, totalLoss, legLoss, armLoss) {
+        const bsaDuBois = calculateBSA_DuBois(weightKg, heightCm);
+        // Втрата площі для ніг
+        const legAreaLoss = legLoss * bsaFactors.leg;
+        const armAreaLoss = armLoss * bsaFactors.arm;
+        const totalAreaLoss = legAreaLoss + armAreaLoss;
+        // Реальна ППТ = ППТ Дюбуа для скоригованої маси × (1 - сумарна втрата площі)
+        // Але ми використовуємо скориговану масу, тому:
+        const adjustedWeight = weightKg / (1 - totalLoss);
+        const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
+        return Math.max(bsaAdjusted * (1 - totalAreaLoss), 0.5);
+    }
+    
+    // Розрахунок доз ЕРМ через ОЦК та гематокрит
+    function calculateERMasses(ebv, ht, targetHb, currentHb) {
+        if (currentHb >= targetHb) return 0;
+        // Дефіцит маси еритроцитів (умовно)
+        // 1 доза ЕРМ ≈ 200 мл еритроцитів з Ht ≈ 60%
+        const erVolume = 200; // мл
+        const erHt = 0.60;
+        const deficit = (targetHb - currentHb) / currentHb;
+        const redCellMassDeficit = ebv * deficit * (ht / 100);
+        const doses = Math.ceil(redCellMassDeficit / (erVolume * erHt));
+        return Math.max(doses, 0);
+    }
+    
+    // Оцінка шоку
+    function getShockLevel(si) {
+        if (si < 0.6) return { label: 'Норма', color: '#28a745', emoji: '🟢' };
+        if (si < 0.9) return { label: 'Передшок', color: '#f0ad4e', emoji: '🟡' };
+        if (si < 1.4) return { label: 'Шок', color: '#e67e22', emoji: '🟠' };
+        return { label: 'Критичний шок', color: '#dc3545', emoji: '🔴' };
+    }
+    
+    // Отримання втрат для ніг та рук окремо
+    function getLimbLoss() {
+        let legLoss = 0, armLoss = 0;
+        const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
+        for (let limb of limbs) {
+            const selected = document.querySelector(`input[name="${limb}"]:checked`);
+            if (selected && selected.value !== 'none') {
+                const val = parseFloat(selected.value);
+                if (limb.includes('leg')) legLoss += val;
+                else armLoss += val;
+            }
+        }
+        return { legLoss, armLoss };
+    }
+    
+    // ============================================================
+    // ВІДОБРАЖЕННЯ
+    // ============================================================
+    function updateTotalLossDisplay() {
+        let loss = computeTotalLoss();
+        let percent = (loss * 100).toFixed(2);
+        document.getElementById('totalLossDisplay').innerHTML = `📉 Сумарна втрата маси: ${percent}%`;
+        if (loss >= 0.5) {
+            document.getElementById('totalLossDisplay').style.background = "#f8d7da";
+            document.getElementById('totalLossDisplay').style.color = "#721c24";
+        } else {
+            document.getElementById('totalLossDisplay').style.background = "#e5f0f9";
+            document.getElementById('totalLossDisplay').style.color = "#1a3e60";
+        }
+    }
+    
+    function clearAllAmputations() {
+        const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
+        for (let limb of limbs) {
+            const noneRadio = document.querySelector(`input[name="${limb}"][value="none"]`);
+            if (noneRadio) noneRadio.checked = true;
+        }
+        updateTotalLossDisplay();
+    }
+    
+    // ============================================================
+    // ОСНОВНИЙ РОЗРАХУНОК
+    // ============================================================
+    function calculate() {
+        // ---- Зчитування даних ----
+        const sex = document.querySelector('input[name="sex"]:checked').value;
+        const heightCm = parseFloat(document.getElementById('height').value);
+        const currentWeight = parseFloat(document.getElementById('weight').value);
+        const hb = parseFloat(document.getElementById('hb').value);
+        const ht = parseFloat(document.getElementById('ht').value);
+        const plt = parseFloat(document.getElementById('plt').value);
+        const inr = parseFloat(document.getElementById('inr').value);
+        const fibrinogen = parseFloat(document.getElementById('fibrinogen').value);
+        const shockIndex = parseFloat(document.getElementById('shockIndex').value);
+        const estimatedLoss = parseFloat(document.getElementById('estimatedBloodLoss').value);
+        const targetHb = parseFloat(document.getElementById('targetHb').value);
+        
+        // ---- Валідація ----
+        if (isNaN(heightCm) || heightCm < 80) { alert("Коректний зріст"); return; }
+        if (isNaN(currentWeight) || currentWeight <= 0) { alert("Введіть вагу"); return; }
+        if (isNaN(hb) || hb < 20) { alert("Введіть гемоглобін"); return; }
+        if (isNaN(ht) || ht < 5) { alert("Введіть гематокрит"); return; }
+        if (isNaN(plt) || plt < 1) { alert("Введіть тромбоцити"); return; }
+        if (isNaN(inr) || inr < 0.3) { alert("Введіть МНВ"); return; }
+        if (isNaN(fibrinogen) || fibrinogen < 0.2) { alert("Введіть фібриноген"); return; }
+        if (isNaN(shockIndex) || shockIndex < 0.2) { alert("Введіть шок-індекс"); return; }
+        
+        const totalLoss = computeTotalLoss();
+        if (totalLoss >= 0.95) { alert("Втрата маси >95%"); return; }
+        
+        // ---- КОРЕКЦІЯ МАСИ ----
+        const adjustedWeight = currentWeight / (1 - totalLoss);
+        const lostMass = adjustedWeight - currentWeight;
+        
+        // ---- ОЦК (за скоригованою масою) ----
+        const ebvAdjusted = calculateBloodVolume(sex, heightCm, adjustedWeight);
+        const ebvActual = calculateBloodVolume(sex, heightCm, currentWeight);
+        const ebvLost = ebvAdjusted - ebvActual;
+        
+        // ---- ППТ (ВЛАСНА МЕТОДИКА) ----
+        const { legLoss, armLoss } = getLimbLoss();
+        const bsaOwn = calculateBSA_Own(currentWeight, heightCm, totalLoss, legLoss, armLoss);
+        const bsaDuBois = calculateBSA_DuBois(currentWeight, heightCm);
+        const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
+        
+        // ---- ДОПУСТИМА КРОВОВТРАТА (ABL) ----
+        const abl = (hb > targetHb) ? ebvActual * (hb - targetHb) / hb : 0;
+        
+        // ---- ДОЗИ ЕРМ (через ОЦК та гематокрит) ----
+        const erDoses = calculateERMasses(ebvActual, ht, targetHb, hb);
+        
+        // ---- ШОК ----
+        const shockLevel = getShockLevel(shockIndex);
+        const percentOfEBV = (estimatedLoss / ebvActual) * 100;
+        const massiveTransfusion = (shockIndex > 1.0 || percentOfEBV > 30);
+        
+        // ---- РЕКОМЕНДАЦІЇ ----
+        let recommendations = [];
+        let warnings = [];
+        
+        // 1. ЕРМАСА
+        if (hb < targetHb) {
+            recommendations.push(`🩸 **ЕРМАСА**: ${erDoses} доза(и) (Hb ${hb} → ціль ${targetHb} г/л, дефіцит ${(targetHb - hb).toFixed(0)} г/л)`);
+        } else {
+            recommendations.push('🟢 **ЕРМАСА**: не показана (Hb ≥ цільового)');
+        }
+        
+        // 2. ТРОМБОКОНЦЕНТРАТ
+        if (plt < 20) {
+            recommendations.push('🔴 **ТРОМБОКОНЦЕНТРАТ**: показано (PLT < 20 ×10⁹/л)');
+        } else if (plt < 50) {
+            recommendations.push('🟡 **ТРОМБОКОНЦЕНТРАТ**: розглянути при активній кровотечі (PLT < 50)');
+        } else {
+            recommendations.push('🟢 **ТРОМБОКОНЦЕНТРАТ**: не показаний (PLT ≥ 50)');
+        }
+        
+        // 3. СЗП
+        if (inr > 1.5 || fibrinogen < 1.0) {
+            recommendations.push('🔴 **СЗП**: показано (INR > 1.5 або фібриноген < 1.0 г/л)');
+        } else if (inr > 1.2 || fibrinogen < 1.5) {
+            recommendations.push('🟡 **СЗП**: розглянути за клінічними показами');
+        } else {
+            recommendations.push('🟢 **СЗП**: не показана (коагуляція в нормі)');
+        }
+        
+        // 4. КРІОПРЕЦИПІТАТ
+        if (fibrinogen < 1.0) {
+            recommendations.push('🔴 **КРІОПРЕЦИПІТАТ**: показано (фібриноген < 1.0 г/л)');
+        }
+        
+        // 5. МАСИВНА ТРАНСФУЗІЯ
+        if (massiveTransfusion) {
+            let reason = [];
+            if (shockIndex > 1.0) reason.push(`SI ${shockIndex.toFixed(2)} > 1.0`);
+            if (percentOfEBV > 30) reason.push(`крововтрата ${percentOfEBV.toFixed(0)}% > 30% ОЦК`);
+            recommendations.push(`⚠️ **МАСИВНА ТРАНСФУЗІЯ**: активувати протокол МТТ (${reason.join(', ')})`);
+        }
+        
+        // ---- ПОПЕРЕДЖЕННЯ ----
+        if (estimatedLoss > abl) {
+            warnings.push(`🔴 Оцінена крововтрата (${estimatedLoss} мл) перевищує допустиму (${abl.toFixed(0)} мл)! Термінова трансфузія.`);
+        }
+        if (shockIndex > 1.4) {
+            warnings.push(`🔴 ${shockLevel.emoji} КРИТИЧНИЙ ШОК (SI = ${shockIndex.toFixed(2)}). Негайна реанімація!`);
+        }
+        if (ht < 25) {
+            warnings.push(`⚠️ Гематокрит < 25% – ризик гіпоксії тканин.`);
+        }
+        
+        // ---- ФОРМУВАННЯ HTML ----
+        const resultHtml = `
+            <div class="highlight-group">
+                <strong>🔵 ОЦК (об'єм циркулюючої крові) – розраховано за скоригованою масою тіла</strong>
+                <div class="method-note">📐 ОЦК = за формулою Nadler (1962) з використанням скоригованої маси тіла (власна гіпотеза)</div>
+                <div class="result-item"><span class="result-label">▶ До ампутації (скоригована маса ${adjustedWeight.toFixed(1)} кг):</span><span class="result-value">${ebvAdjusted.toFixed(0)} мл (≈ ${(ebvAdjusted/1000).toFixed(2)} л)</span></div>
+                <div class="result-item"><span class="result-label">▶ Після ампутації (актуальна маса ${currentWeight.toFixed(1)} кг):</span><span class="result-value">${ebvActual.toFixed(0)} мл (≈ ${(ebvActual/1000).toFixed(2)} л)</span></div>
+                <div class="result-item" style="border-bottom: 2px solid #1f6e43; font-weight: 700;"><span class="result-label">▶ Втрачено через ампутацію:</span><span class="result-value" style="color:#1f6e43;">${ebvLost.toFixed(0)} мл (≈ ${(ebvLost/1000).toFixed(2)} л)</span></div>
+            </div>
+            <div class="result-group">
+                <strong>📐 ППТ (площа поверхні тіла) – власна методика</strong>
+                <div class="method-note">📐 Розраховано за унікальною методикою на основі Osterkamp (1995) + правило дев'яток: для ніг коеф. 1,125 (18/16), для рук 1,8 (9/5).</div>
+                <div class="result-item"><span class="result-label">ППТ (Дюбуа, скоригована маса):</span><span class="result-value">${bsaAdjusted.toFixed(2)} м²</span></div>
+                <div class="result-item"><span class="result-label">ППТ (власна методика, реальна):</span><span class="result-value">${bsaOwn.toFixed(2)} м²</span></div>
+                <div class="result-item"><span class="result-label">Втрачено ППТ (власна методика):</span><span class="result-value">${(bsaAdjusted - bsaOwn).toFixed(2)} м² (${(((bsaAdjusted - bsaOwn)/bsaAdjusted)*100).toFixed(1)}%)</span></div>
+            </div>
+            <div class="result-group">
+                <strong>⚖️ Корекція маси тіла</strong>
+                <div class="result-item"><span class="result-label">Скоригована маса:</span><span class="result-value">${adjustedWeight.toFixed(1)} кг</span></div>
+                <div class="result-item"><span class="result-label">Втрачена маса:</span><span class="result-value">${lostMass.toFixed(1)} кг (${(totalLoss*100).toFixed(2)}%)</span></div>
+            </div>
+            <div class="result-group">
+                <strong>🩸 Допустима крововтрата (ABL)</strong>
+                <div class="result-item"><span class="result-label">Цільовий Hb:</span><span class="result-value">${targetHb} г/л</span></div>
+                <div class="result-item"><span class="result-label">ABL = EBV × (Hbᵢ − Hbբ) / Hbᵢ:</span><span class="result-value">${abl.toFixed(0)} мл</span></div>
+                <div class="result-item"><span class="result-label">Оцінена крововтрата:</span><span class="result-value">${estimatedLoss} мл</span></div>
+                <div class="result-item" style="border-bottom: 2px solid ${abl < estimatedLoss ? '#dc3545' : '#28a745'};"><span class="result-label">Резерв:</span><span class="result-value">${(abl - estimatedLoss).toFixed(0)} мл</span></div>
+            </div>
+            <div class="result-group">
+                <strong>🫀 Шок-індекс (SI = ЧСС / АТсист)</strong>
+                <div class="result-item"><span class="result-label">Значення:</span><span class="result-value">${shockIndex.toFixed(2)}</span></div>
+                <div class="result-item"><span class="result-label">Оцінка:</span><span class="result-value" style="color:${shockLevel.color};">${shockLevel.emoji} ${shockLevel.label}</span></div>
+                <div class="result-item"><span class="result-label">Крововтрата (% ОЦК):</span><span class="result-value">${percentOfEBV.toFixed(1)}%</span></div>
+            </div>
+            <div style="margin-top: 14px; padding: 12px; background: #f9fbfd; border-radius: 12px;">
+                <strong>📌 Рекомендації щодо трансфузій:</strong><br>
+                ${recommendations.map(r => `<div style="margin: 4px 0; font-size: 0.9rem;">${r}</div>`).join('')}
+            </div>
+        `;
+        
+        document.getElementById('resultContent').innerHTML = resultHtml;
+        
+        // ---- ВІДОБРАЖЕННЯ ПОПЕРЕДЖЕНЬ ----
+        const warningDiv = document.getElementById('warningMsg');
+        if (warnings.length > 0) {
+            warningDiv.innerHTML = warnings.map(w => `<div>${w}</div>`).join('');
+            warningDiv.style.display = 'block';
+            if (warnings.some(w => w.includes('КРИТИЧНИЙ') || w.includes('перевищує'))) {
+                warningDiv.style.background = "#fce4e1";
+                warningDiv.style.borderLeft = "5px solid #dc3545";
+            } else {
+                warningDiv.style.background = "#fff3e0";
+                warningDiv.style.borderLeft = "5px solid #e67e22";
+            }
+        } else {
+            warningDiv.style.display = 'none';
+        }
+        
+        document.getElementById('resultsArea').style.display = 'block';
+        document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // ============================================================
+    // ІНІЦІАЛІЗАЦІЯ
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const radios = document.querySelectorAll('input[type="radio"]');
+        radios.forEach(radio => radio.addEventListener('change', updateTotalLossDisplay));
+        updateTotalLossDisplay();
+        document.getElementById('calcBtn').addEventListener('click', calculate);
+        document.getElementById('clearAmputationsBtn').addEventListener('click', clearAllAmputations);
+    });
+</script>
+</body>
+</html>
