@@ -230,7 +230,7 @@
             ▶ <strong>ОЦК (PATRIOT Blood Volume Adjustment)</strong> – авторська модель корекції об'єму циркулюючої крові з використанням скоригованої маси тіла.<br>
             ▶ <strong>ППТ (PATRIOT Surface Area Adjustment)</strong> – авторська методика корекції площі поверхні тіла на основі Osterkamp + правило дев'яток.<br>
             ▶ <strong>ABL</strong> = EBV × (Hbᵢ − Hbբ) / Hbᵢ з вибором цільового Hb.<br>
-            ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит маси еритроцитів з урахуванням ОЦК та гематокриту.<br>
+            ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит маси еритроцитів з урахуванням ОЦК, гематокриту та ваги.<br>
             ▶ <strong>Масивна трансфузія</strong> – SI > 1.0 або крововтрата > 30% ОЦК.
         </div>
     </div>
@@ -264,13 +264,16 @@
                 ⚠️ <strong>Примітка:</strong> розрахунки мають орієнтовний характер і не замінюють клінічного рішення лікаря.
             </div>
         </div>
-        <div class="developer">👨‍💻 Розробник: <strong>Ігор Стельмащук</strong> 📧 smart47785@gmail.com</div>
+        <div class="developer">
+            👨‍💻 Розробник: <strong>Ігор Стельмащук</strong> 📧 smart47785@gmail.com<br>
+            <span style="font-size:0.7rem; color:#5f7f9a;">📚 DOI: <a href="https://doi.org/10.5281/zenodo.20719971" target="_blank">10.5281/zenodo.20719971</a></span>
+        </div>
     </footer>
 </div>
 
 <script>
     // ============================================================
-    // КУМУЛЯТИВНІ ВІДСОТКИ ВТРАТИ МАСИ
+    // БАЗОВІ КОНСТАНТИ
     // ============================================================
     const lossMap = {
         foot: 0.015, calf_lower: 0.027, calf_middle: 0.042, calf_upper: 0.059,
@@ -279,7 +282,119 @@
         upperarm_lower: 0.030, upperarm_middle: 0.038, upperarm_upper: 0.047, wholearm: 0.050
     };
     const bsaFactors = { leg: 1.125, arm: 1.8 };
-    
+
+    // ============================================================
+    // ВИПРАВЛЕНА ФУНКЦІЯ РОЗРАХУНКУ ДОЗ ЕРМАСИ
+    // ============================================================
+    function calculateERMasses(ebv, ht, targetHb, currentHb, weight) {
+        // 1. Захист від некоректних вхідних даних
+        if (!ebv || ebv <= 0 || !ht || ht <= 0 || ht > 70) {
+            console.warn('Некоректні дані для розрахунку ЕРМ');
+            return { doses: 0, deficit: 0, note: 'Помилка вхідних даних' };
+        }
+        
+        if (targetHb <= currentHb) {
+            return { doses: 0, deficit: 0, note: 'Цільовий Hb досягнутий' };
+        }
+        
+        // 2. Дефіцит гемоглобіну
+        const deficit = targetHb - currentHb;
+        
+        // 3. Розрахунок через масу еритроцитів
+        //    Вміст Hb в 1 дозі ЕРМ ≈ 55-60 г (200 мл еритроцитів з Ht ~60%)
+        const hbPerDose = 55; // г/л Hb в 1 дозі ЕРМ
+        
+        // Корекція на вагу пацієнта (чим більша вага, тим більше доз)
+        const weightFactor = Math.min(Math.max(weight / 70, 0.6), 1.8);
+        
+        // Розрахунок необхідної кількості доз
+        const rawDoses = (deficit * ebv * 0.001) / (hbPerDose * weightFactor);
+        const doses = Math.ceil(rawDoses);
+        
+        // 4. Додаткові обмеження
+        const maxDoses = Math.ceil(ebv / 500); // максимально безпечна кількість (не більше 1 дози на 500 мл ОЦК)
+        const finalDoses = Math.min(doses, maxDoses);
+        
+        // 5. Детальна інформація для користувача
+        let note = '';
+        if (finalDoses === 0) {
+            note = 'Трансфузія не потрібна';
+        } else if (finalDoses <= 2) {
+            note = `Рекомендовано ${finalDoses} дози (стандартна терапія)`;
+        } else if (finalDoses <= 4) {
+            note = `Рекомендовано ${finalDoses} дози (помірна крововтрата)`;
+        } else {
+            note = `Рекомендовано ${finalDoses} доз (масивна трансфузія, розглянути протокол МТТ)`;
+        }
+        
+        return {
+            doses: finalDoses,
+            deficit: deficit,
+            rawDoses: rawDoses,
+            maxDoses: maxDoses,
+            note: note,
+            weightFactor: weightFactor
+        };
+    }
+
+    // ============================================================
+    // ВИПРАВЛЕНА ФУНКЦІЯ ABL З ПЕРЕВІРКОЮ КРОВОВТРАТИ
+    // ============================================================
+    function calculateABL(ebv, hbInitial, hbFinal) {
+        if (!ebv || ebv <= 0 || !hbInitial || hbInitial <= 0) {
+            return { abl: 0, warning: 'Некоректні дані' };
+        }
+        
+        if (hbInitial <= hbFinal) {
+            return { abl: 0, warning: 'Початковий Hb ≤ цільового' };
+        }
+        
+        const abl = ebv * (hbInitial - hbFinal) / hbInitial;
+        
+        let warning = '';
+        if (abl > 2000) {
+            warning = '🟢 Високий резерв крововтрати';
+        } else if (abl > 1000) {
+            warning = '🟡 Помірний резерв крововтрати';
+        } else if (abl > 500) {
+            warning = '🟠 Низький резерв крововтрати – ризик швидкого виснаження';
+        } else {
+            warning = '🔴 Критично низький резерв – негайна трансфузія при будь-якій крововтраті!';
+        }
+        
+        return { abl, warning };
+    }
+
+    // ============================================================
+    // ПЕРЕВІРКА КРОВОВТРАТИ
+    // ============================================================
+    function validateBloodLoss(estimatedLoss, ebv, abl) {
+        let warnings = [];
+        
+        if (estimatedLoss === 0) {
+            warnings.push('ℹ️ Крововтрата не вказана або дорівнює 0');
+            return warnings;
+        }
+        
+        if (estimatedLoss > ebv) {
+            warnings.push(`🔴 Введена крововтрата (${estimatedLoss} мл) перевищує розрахований ОЦК (${ebv.toFixed(0)} мл)!`);
+            warnings.push('⚠️ Це може свідчити про помилку у введених даних або критичну крововтрату.');
+        }
+        
+        if (estimatedLoss > abl && abl > 0) {
+            warnings.push(`🔴 Оцінена крововтрата (${estimatedLoss} мл) перевищує допустиму (${abl.toFixed(0)} мл)! Термінова трансфузія.`);
+        }
+        
+        if (estimatedLoss > ebv * 0.3) {
+            warnings.push(`⚠️ Крововтрата перевищує 30% ОЦК (${(ebv*0.3).toFixed(0)} мл) – ризик геморагічного шоку.`);
+        }
+        
+        return warnings;
+    }
+
+    // ============================================================
+    // ВСПОМІЖНІ ФУНКЦІЇ
+    // ============================================================
     function computeTotalLoss() {
         let total = 0;
         const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
@@ -291,7 +406,7 @@
         }
         return Math.min(total, 0.95);
     }
-    
+
     function calculateBloodVolume(sex, heightCm, weightKg) {
         let bv;
         if (sex === 'male') {
@@ -301,11 +416,11 @@
         }
         return bv * 1000;
     }
-    
+
     function calculateBSA_DuBois(weightKg, heightCm) {
         return 0.007184 * Math.pow(weightKg, 0.425) * Math.pow(heightCm, 0.725);
     }
-    
+
     function calculateBSA_Own(weightKg, heightCm, totalLoss, legLoss, armLoss) {
         const adjustedWeight = weightKg / (1 - totalLoss);
         const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
@@ -314,24 +429,14 @@
         const totalAreaLoss = legAreaLoss + armAreaLoss;
         return Math.max(bsaAdjusted * (1 - totalAreaLoss), 0.5);
     }
-    
-    function calculateERMasses(ebv, ht, targetHb, currentHb) {
-        if (currentHb >= targetHb) return 0;
-        const erVolume = 200;
-        const erHt = 0.60;
-        const deficit = (targetHb - currentHb) / currentHb;
-        const redCellMassDeficit = ebv * deficit * (ht / 100);
-        const doses = Math.ceil(redCellMassDeficit / (erVolume * erHt));
-        return Math.max(doses, 0);
-    }
-    
+
     function getShockLevel(si) {
         if (si < 0.6) return { label: 'Норма', color: '#28a745', emoji: '🟢' };
         if (si < 0.9) return { label: 'Передшок', color: '#f0ad4e', emoji: '🟡' };
         if (si < 1.4) return { label: 'Шок', color: '#e67e22', emoji: '🟠' };
         return { label: 'Критичний шок', color: '#dc3545', emoji: '🔴' };
     }
-    
+
     function getLimbLoss() {
         let legLoss = 0, armLoss = 0;
         const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
@@ -345,7 +450,7 @@
         }
         return { legLoss, armLoss };
     }
-    
+
     function updateTotalLossDisplay() {
         let loss = computeTotalLoss();
         let percent = (loss * 100).toFixed(2);
@@ -358,7 +463,7 @@
             document.getElementById('totalLossDisplay').style.color = "#1a3e60";
         }
     }
-    
+
     function clearAllAmputations() {
         const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
         for (let limb of limbs) {
@@ -367,7 +472,10 @@
         }
         updateTotalLossDisplay();
     }
-    
+
+    // ============================================================
+    // ОСНОВНИЙ РОЗРАХУНОК
+    // ============================================================
     function calculate() {
         const sex = document.querySelector('input[name="sex"]:checked').value;
         const heightCm = parseFloat(document.getElementById('height').value);
@@ -380,44 +488,61 @@
         const shockIndex = parseFloat(document.getElementById('shockIndex').value);
         const estimatedLoss = parseFloat(document.getElementById('estimatedBloodLoss').value);
         const targetHb = parseFloat(document.getElementById('targetHb').value);
-        
+
+        // Валідація
         if (isNaN(heightCm) || heightCm < 80) { alert("Коректний зріст"); return; }
         if (isNaN(currentWeight) || currentWeight <= 0) { alert("Введіть вагу"); return; }
-        if (isNaN(hb) || hb < 20) { alert("Введіть гемоглобін"); return; }
-        if (isNaN(ht) || ht < 5) { alert("Введіть гематокрит"); return; }
-        if (isNaN(plt) || plt < 1) { alert("Введіть тромбоцити"); return; }
-        if (isNaN(inr) || inr < 0.3) { alert("Введіть МНВ"); return; }
-        if (isNaN(fibrinogen) || fibrinogen < 0.2) { alert("Введіть фібриноген"); return; }
-        if (isNaN(shockIndex) || shockIndex < 0.2) { alert("Введіть шок-індекс"); return; }
-        
+        if (isNaN(hb) || hb < 20) { alert("Введіть гемоглобін (≥20 г/л)"); return; }
+        if (isNaN(ht) || ht < 5) { alert("Введіть гематокрит (≥5%)"); return; }
+        if (isNaN(plt) || plt < 1) { alert("Введіть тромбоцити (≥1)"); return; }
+        if (isNaN(inr) || inr < 0.3) { alert("Введіть МНВ (≥0.3)"); return; }
+        if (isNaN(fibrinogen) || fibrinogen < 0.2) { alert("Введіть фібриноген (≥0.2)"); return; }
+        if (isNaN(shockIndex) || shockIndex < 0.2) { alert("Введіть шок-індекс (≥0.2)"); return; }
+
         const totalLoss = computeTotalLoss();
         if (totalLoss >= 0.95) { alert("Втрата маси >95%"); return; }
-        
+
+        // Корекція маси
         const adjustedWeight = currentWeight / (1 - totalLoss);
         const lostMass = adjustedWeight - currentWeight;
+
+        // ОЦК
         const ebvAdjusted = calculateBloodVolume(sex, heightCm, adjustedWeight);
         const ebvActual = calculateBloodVolume(sex, heightCm, currentWeight);
         const ebvLost = ebvAdjusted - ebvActual;
-        
+
+        // ППТ
         const { legLoss, armLoss } = getLimbLoss();
         const bsaOwn = calculateBSA_Own(currentWeight, heightCm, totalLoss, legLoss, armLoss);
         const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
-        
-        const abl = (hb > targetHb) ? ebvActual * (hb - targetHb) / hb : 0;
-        const erDoses = calculateERMasses(ebvActual, ht, targetHb, hb);
+
+        // Допустима крововтрата (ABL) – оновлена
+        const ablResult = calculateABL(ebvActual, hb, targetHb);
+        const abl = ablResult.abl;
+        const ablWarning = ablResult.warning;
+
+        // Дози ЕРМ – оновлена
+        const erResult = calculateERMasses(ebvActual, ht, targetHb, hb, currentWeight);
+        const erDoses = erResult.doses;
+
+        // Шок
         const shockLevel = getShockLevel(shockIndex);
         const percentOfEBV = (estimatedLoss / ebvActual) * 100;
         const massiveTransfusion = (shockIndex > 1.0 || percentOfEBV > 30);
-        
+
+        // Рекомендації
         let recommendations = [];
         let warnings = [];
-        
+
+        // ЕРМ
         if (hb < targetHb) {
-            recommendations.push(`🩸 **ЕРМАСА**: ${erDoses} доза(и) (Hb ${hb} → ціль ${targetHb} г/л, дефіцит ${(targetHb - hb).toFixed(0)} г/л)`);
+            recommendations.push(`🩸 **ЕРМАСА**: ${erDoses} доза(и) (Hb ${hb} → ціль ${targetHb} г/л, дефіцит ${erResult.deficit.toFixed(0)} г/л)`);
+            recommendations.push(`📊 ${erResult.note}`);
         } else {
             recommendations.push('🟢 **ЕРМАСА**: не показана (Hb ≥ цільового)');
         }
-        
+
+        // Тромбоконцентрат
         if (plt < 20) {
             recommendations.push('🔴 **ТРОМБОКОНЦЕНТРАТ**: показано (PLT < 20 ×10⁹/л)');
         } else if (plt < 50) {
@@ -425,7 +550,8 @@
         } else {
             recommendations.push('🟢 **ТРОМБОКОНЦЕНТРАТ**: не показаний (PLT ≥ 50)');
         }
-        
+
+        // СЗП
         if (inr > 1.5 || fibrinogen < 1.0) {
             recommendations.push('🔴 **СЗП**: показано (INR > 1.5 або фібриноген < 1.0 г/л)');
         } else if (inr > 1.2 || fibrinogen < 1.5) {
@@ -433,28 +559,38 @@
         } else {
             recommendations.push('🟢 **СЗП**: не показана (коагуляція в нормі)');
         }
-        
+
+        // Кріопреципітат
         if (fibrinogen < 1.0) {
             recommendations.push('🔴 **КРІОПРЕЦИПІТАТ**: показано (фібриноген < 1.0 г/л)');
         }
-        
+
+        // Масивна трансфузія
         if (massiveTransfusion) {
             let reason = [];
             if (shockIndex > 1.0) reason.push(`SI ${shockIndex.toFixed(2)} > 1.0`);
             if (percentOfEBV > 30) reason.push(`крововтрата ${percentOfEBV.toFixed(0)}% > 30% ОЦК`);
             recommendations.push(`⚠️ **МАСИВНА ТРАНСФУЗІЯ**: активувати протокол МТТ (${reason.join(', ')})`);
         }
-        
-        if (estimatedLoss > abl) {
-            warnings.push(`🔴 Оцінена крововтрата (${estimatedLoss} мл) перевищує допустиму (${abl.toFixed(0)} мл)! Термінова трансфузія.`);
+
+        // ABL та перевірка крововтрати
+        const lossWarnings = validateBloodLoss(estimatedLoss, ebvActual, abl);
+        if (lossWarnings.length > 0) {
+            lossWarnings.forEach(w => warnings.push(w));
         }
+        if (ablWarning) {
+            warnings.push(`🩸 ${ablWarning}`);
+        }
+
+        // Шок
         if (shockIndex > 1.4) {
             warnings.push(`🔴 ${shockLevel.emoji} КРИТИЧНИЙ ШОК (SI = ${shockIndex.toFixed(2)}). Негайна реанімація!`);
         }
         if (ht < 25) {
             warnings.push(`⚠️ Гематокрит < 25% – ризик гіпоксії тканин.`);
         }
-        
+
+        // Формування результату
         const resultHtml = `
             <div class="highlight-group">
                 <strong>🔵 ОЦК (PATRIOT Blood Volume Adjustment, 2026)</strong>
@@ -476,11 +612,21 @@
                 <div class="result-item"><span class="result-label">Втрачена маса:</span><span class="result-value">${lostMass.toFixed(1)} кг (${(totalLoss*100).toFixed(2)}%)</span></div>
             </div>
             <div class="result-group">
-                <strong>🩸 Допустима крововтрата (ABL)</strong>
+                <strong>🩸 Допустима крововтрата (ABL) та перевірка</strong>
                 <div class="result-item"><span class="result-label">Цільовий Hb:</span><span class="result-value">${targetHb} г/л</span></div>
                 <div class="result-item"><span class="result-label">ABL = EBV × (Hbᵢ − Hbբ) / Hbᵢ:</span><span class="result-value">${abl.toFixed(0)} мл</span></div>
                 <div class="result-item"><span class="result-label">Оцінена крововтрата:</span><span class="result-value">${estimatedLoss} мл</span></div>
                 <div class="result-item" style="border-bottom: 2px solid ${abl < estimatedLoss ? '#dc3545' : '#28a745'};"><span class="result-label">Резерв:</span><span class="result-value">${(abl - estimatedLoss).toFixed(0)} мл</span></div>
+                <div class="result-item"><span class="result-label">Оцінка резерву:</span><span class="result-value">${ablWarning}</span></div>
+            </div>
+            <div class="result-group">
+                <strong>🩸 Розрахунок доз ЕРМ (оновлена методика)</strong>
+                <div class="method-note">📐 Дефіцит Hb × ОЦК / (вміст Hb в 1 дозі × коеф. ваги)</div>
+                <div class="result-item"><span class="result-label">Дефіцит Hb:</span><span class="result-value">${erResult.deficit.toFixed(0)} г/л</span></div>
+                <div class="result-item"><span class="result-label">Коефіцієнт ваги:</span><span class="result-value">${erResult.weightFactor.toFixed(2)}</span></div>
+                <div class="result-item"><span class="result-label">Розрахована кількість доз:</span><span class="result-value">${erDoses}</span></div>
+                <div class="result-item"><span class="result-label">Максимально безпечно:</span><span class="result-value">${erResult.maxDoses} доз</span></div>
+                <div class="result-item" style="border-bottom: 2px solid ${erDoses > 4 ? '#dc3545' : '#1f6e43'};"><span class="result-label">📌 Висновок:</span><span class="result-value">${erResult.note}</span></div>
             </div>
             <div class="result-group">
                 <strong>🫀 Шок-індекс (SI = ЧСС / АТсист)</strong>
@@ -493,14 +639,15 @@
                 ${recommendations.map(r => `<div style="margin: 4px 0; font-size: 0.9rem;">${r}</div>`).join('')}
             </div>
         `;
-        
+
         document.getElementById('resultContent').innerHTML = resultHtml;
-        
+
+        // Відображення попереджень
         const warningDiv = document.getElementById('warningMsg');
         if (warnings.length > 0) {
             warningDiv.innerHTML = warnings.map(w => `<div>${w}</div>`).join('');
             warningDiv.style.display = 'block';
-            if (warnings.some(w => w.includes('КРИТИЧНИЙ') || w.includes('перевищує'))) {
+            if (warnings.some(w => w.includes('КРИТИЧНИЙ') || w.includes('перевищує') || w.includes('Критично'))) {
                 warningDiv.style.background = "#fce4e1";
                 warningDiv.style.borderLeft = "5px solid #dc3545";
             } else {
@@ -510,11 +657,11 @@
         } else {
             warningDiv.style.display = 'none';
         }
-        
+
         document.getElementById('resultsArea').style.display = 'block';
         document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    
+
     // ============================================================
     // РЕЄСТРАЦІЯ SERVICE WORKER (PWA)
     // ============================================================
@@ -525,7 +672,7 @@
                 .catch(err => console.log('Service Worker registration failed', err));
         });
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         const radios = document.querySelectorAll('input[type="radio"]');
         radios.forEach(radio => radio.addEventListener('change', updateTotalLossDisplay));
