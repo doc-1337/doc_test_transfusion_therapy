@@ -235,7 +235,7 @@
             ▶ <strong>ОЦК (PATRIOT Blood Volume Adjustment)</strong> – авторська модель корекції об'єму циркулюючої крові з використанням скоригованої маси тіла.<br>
             ▶ <strong>ППТ (PATRIOT Surface Area Adjustment)</strong> – авторська методика корекції площі поверхні тіла на основі Osterkamp + правило дев'яток.<br>
             ▶ <strong>ABL</strong> = EBV × (Hb₀ − Hbբ) / Hb₀ з вибором цільового Hb.<br>
-            ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит Hb з урахуванням ОЦК, гематокриту та ваги.<br>
+            ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит Hb з урахуванням ваги.<br>
             ▶ <strong>Масивна трансфузія</strong> – SI > 1.0 або крововтрата > 30% ОЦК.
         </div>
     </div>
@@ -289,33 +289,29 @@
     const bsaFactors = { leg: 1.125, arm: 1.8 };
 
     // ============================================================
-    // РОЗРАХУНОК ДОЗ ЕРМАСИ (виправлена формула з коментарями)
+    // РОЗРАХУНОК ДОЗ ЕРМАСИ (спрощена та клінічно обґрунтована)
     // ============================================================
-    function calculateERMasses(ebv, ht, targetHb, currentHb, weight) {
+    function calculateERMasses(targetHb, currentHb, weight) {
         // Захист від некоректних даних
-        if (!ebv || ebv <= 0 || !ht || ht <= 0 || ht > 70) {
-            return { doses: 0, deficit: 0, note: 'Помилка вхідних даних', rawDoses: 0 };
+        if (!targetHb || !currentHb || !weight || weight <= 0) {
+            return { doses: 0, deficit: 0, note: 'Помилка вхідних даних' };
         }
         
         if (targetHb <= currentHb) {
-            return { doses: 0, deficit: 0, note: 'Цільовий Hb досягнутий', rawDoses: 0 };
+            return { doses: 0, deficit: 0, note: 'Цільовий Hb досягнутий' };
         }
         
         const deficit = targetHb - currentHb; // г/л
         
-        // Розрахунок необхідної кількості еритроцитів (мл)
-        // 1 доза ЕРМ ≈ 200 мл еритроцитів з Ht ≈ 60%
-        // В 1 мл еритроцитів міститься ≈ 0.6 мл чистої еритроцитарної маси
-        // 1 мл еритроцитарної маси підвищує Hb на ~0.3 г/л (для пацієнта 70 кг)
-        // Тому 1 доза (200 мл) підвищує Hb на ~60 г/л для 70 кг пацієнта
-        
-        // Простіша емпірична формула (клінічно перевірена):
-        // дози = (дефіцит Hb / 10) × (вага / 70)
-        const empiricalDoses = (deficit / 10) * (weight / 70);
-        const doses = Math.ceil(empiricalDoses);
+        // Клінічно обґрунтована формула:
+        // 1 доза ЕРМ (≈200-250 мл) підвищує Hb на ≈10 г/л у дорослого пацієнта
+        // Корекція на вагу: для пацієнта 70 кг – 10 г/л, для 100 кг – менше, для 50 кг – більше
+        const hbRisePerDose = 10 * (70 / weight);
+        const rawDoses = deficit / hbRisePerDose;
+        const doses = Math.ceil(rawDoses);
         
         // Обмеження: максимум 6 доз за один раз (клінічна безпека)
-        const maxDoses = Math.min(Math.ceil(ebv / 500), 6);
+        const maxDoses = 6;
         const finalDoses = Math.min(doses, maxDoses);
         
         let note = '';
@@ -332,11 +328,12 @@
         return {
             doses: finalDoses,
             deficit: deficit,
-            rawDoses: empiricalDoses,
+            rawDoses: rawDoses,
             maxDoses: maxDoses,
             note: note,
+            hbRisePerDose: hbRisePerDose,
             weightFactor: weight / 70,
-            method: 'empirical'
+            method: 'clinical'
         };
     }
 
@@ -345,7 +342,13 @@
     // ============================================================
     function calculateABL(ebv, hbInitial, hbCurrent, hbTarget) {
         if (!ebv || ebv <= 0 || !hbInitial || hbInitial <= 0) {
-            return { abl: 0, warning: 'Некоректні дані' };
+            return { abl: 0, warning: 'Некоректні дані', reserveLoss: 0, alreadyLost: 0 };
+        }
+        
+        // Перевірка: поточний Hb не може перевищувати початковий (якщо не було трансфузії)
+        let warning = '';
+        if (hbCurrent > hbInitial) {
+            warning = '⚠️ Поточний Hb перевищує початковий. Перевірте введені дані (можливо, була трансфузія).';
         }
         
         // Резерв крововтрати від початкового до цільового
@@ -357,15 +360,16 @@
         // Залишок резерву до цільового рівня
         const remainingReserve = Math.max(reserveLoss - alreadyLost, 0);
         
-        let warning = '';
-        if (remainingReserve > 2000) {
-            warning = '🟢 Високий резерв крововтрати';
-        } else if (remainingReserve > 1000) {
-            warning = '🟡 Помірний резерв крововтрати';
-        } else if (remainingReserve > 500) {
-            warning = '🟠 Низький резерв крововтрати – ризик швидкого виснаження';
-        } else {
-            warning = '🔴 Критично низький резерв – негайна трансфузія при будь-якій крововтраті!';
+        if (!warning) {
+            if (remainingReserve > 2000) {
+                warning = '🟢 Високий резерв крововтрати';
+            } else if (remainingReserve > 1000) {
+                warning = '🟡 Помірний резерв крововтрати';
+            } else if (remainingReserve > 500) {
+                warning = '🟠 Низький резерв крововтрати – ризик швидкого виснаження';
+            } else {
+                warning = '🔴 Критично низький резерв – негайна трансфузія при будь-якій крововтраті!';
+            }
         }
         
         return {
@@ -523,18 +527,18 @@
         const ebvActual = calculateBloodVolume(sex, heightCm, currentWeight);
         const ebvLost = ebvPreAmputation - ebvActual;
 
-        // ППТ (зрозумілі назви змінних)
+        // ППТ
         const { legLoss, armLoss } = getLimbLoss();
-        const bsaPreAmputation = calculateBSA_DuBois(adjustedWeight, heightCm);        // ППТ до ампутації (Дюбуа, скоригована маса)
-        const bsaPatriotAdjusted = calculateBSA_Patriot(currentWeight, heightCm, totalLoss, legLoss, armLoss); // ППТ за авторською методикою
+        const bsaPreAmputation = calculateBSA_DuBois(adjustedWeight, heightCm);
+        const bsaPatriotAdjusted = calculateBSA_Patriot(currentWeight, heightCm, totalLoss, legLoss, armLoss);
 
         // ABL (з початковим та поточним Hb)
         const ablResult = calculateABL(ebvActual, hbInitial, hb, targetHb);
         const abl = ablResult.abl;
         const ablWarning = ablResult.warning;
 
-        // Дози ЕРМ
-        const erResult = calculateERMasses(ebvActual, ht, targetHb, hb, currentWeight);
+        // Дози ЕРМ (спрощена формула)
+        const erResult = calculateERMasses(targetHb, hb, currentWeight);
         const erDoses = erResult.doses;
 
         // Шок
@@ -635,11 +639,11 @@
             </div>
             <div class="result-group">
                 <strong>🩸 Розрахунок доз ЕРМ</strong>
-                <div class="method-note">📐 Емпірична формула: дози = (дефіцит Hb / 10) × (вага / 70)</div>
+                <div class="method-note">📐 Клінічна формула: 1 доза ЕРМ підвищує Hb на ≈10 г/л (з корекцією на вагу)</div>
                 <div class="result-item"><span class="result-label">Дефіцит Hb:</span><span class="result-value">${erResult.deficit.toFixed(0)} г/л</span></div>
+                <div class="result-item"><span class="result-label">Підйом Hb від 1 дози:</span><span class="result-value">${erResult.hbRisePerDose.toFixed(1)} г/л</span></div>
                 <div class="result-item"><span class="result-label">Коефіцієнт ваги:</span><span class="result-value">${erResult.weightFactor.toFixed(2)}</span></div>
                 <div class="result-item"><span class="result-label">Розрахована кількість доз:</span><span class="result-value">${erDoses}</span></div>
-                <div class="result-item"><span class="result-label">Максимально безпечно:</span><span class="result-value">${erResult.maxDoses} доз</span></div>
                 <div class="result-item" style="border-bottom: 2px solid ${erDoses > 4 ? '#dc3545' : '#1f6e43'};"><span class="result-label">📌 Висновок:</span><span class="result-value">${erResult.note}</span></div>
             </div>
             <div class="result-group">
