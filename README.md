@@ -27,7 +27,7 @@ MIT License
 
 Якщо ви використовуєте цей калькулятор у вашому дослідженні, будь ласка, цитуйте його за DOI:
 
-[![DOI](https://zenodo.org/badge/1236875447.svg)](https://doi.org/10.5281/zenodo.20386967)
+[![DOI](https://zenodo.org/badge/1264106381.svg)](https://doi.org/10.5281/zenodo.20719971)
 
 ## 👨‍💻 Розробник
 
