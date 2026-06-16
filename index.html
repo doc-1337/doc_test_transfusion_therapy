@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Трансфузійна терапія – v1.0 (пре-реліз)</title>
+    <title>Трансфузійна терапія – v1.0</title>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #eef2f7; margin: 0; padding: 20px; }
@@ -17,8 +17,60 @@
         label { display: block; font-weight: 600; margin-bottom: 3px; color: #1f3b4a; font-size: 0.85rem; }
         input, select { width: 100%; padding: 8px 10px; border: 1px solid #bdd3e0; border-radius: 10px; font-size: 0.9rem; }
         input:focus { border-color: #2c6e9e; outline: none; box-shadow: 0 0 0 3px rgba(44,110,158,0.15); }
-        .radio-group { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-        .radio-group label { display: inline-flex; align-items: center; gap: 5px; font-weight: normal; margin-bottom: 0; font-size: 0.85rem; }
+        
+        /* ==================== ПОКРАЩЕНІ РАДІОКНОПКИ ==================== */
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 10px 20px;
+            background: #f8fafd;
+            border: 2px solid #cfdfea;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0;
+            min-width: 100px;
+            justify-content: center;
+        }
+        .radio-group label:hover {
+            background: #eef4f9;
+            border-color: #a0b8cc;
+        }
+        .radio-group input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #267c4a;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .radio-group label:has(input:checked) {
+            background: #e3f5ec;
+            border-color: #267c4a;
+            box-shadow: 0 0 0 2px rgba(38, 124, 74, 0.15);
+        }
+        @media (max-width: 480px) {
+            .radio-group {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .radio-group label {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 16px;
+            }
+        }
+        /* =============================================================== */
+        
         .amputation-section { background: #ffffff; border-radius: 16px; padding: 10px 14px; margin-top: 10px; border: 1px solid #e0eef5; max-height: 380px; overflow-y: auto; }
         .limb-row { margin-bottom: 12px; border-bottom: 1px dashed #cce0ea; padding-bottom: 10px; }
         .limb-title { font-weight: 700; margin: 4px 0 6px 0; color: #1f5e8c; font-size: 0.85rem; }
@@ -37,7 +89,6 @@
         .result-value { font-family: monospace; font-weight: 700; font-size: 0.9rem; }
         .result-group { background: #f8fafc; padding: 8px 12px; border-radius: 10px; margin: 6px 0; border-left: 4px solid #2c6e9e; }
         .highlight-group { background: #e3f5ec; border-left: 4px solid #1f6e43; padding: 10px 14px; border-radius: 12px; margin: 8px 0; }
-        .massive { background: #fce4e1; border-left: 4px solid #dc3545; padding: 10px 14px; border-radius: 12px; margin: 8px 0; }
         .warning { padding: 10px; border-radius: 14px; margin-top: 14px; font-size: 0.8rem; }
         .info { background: #e8f4f8; border-left: 5px solid #2c6e9e; padding: 10px; border-radius: 14px; margin-top: 10px; font-size: 0.75rem; }
         footer { font-size: 0.65rem; text-align: center; margin-top: 20px; color: #5f7f9a; border-top: 1px solid #e0eef5; padding-top: 12px; }
@@ -45,16 +96,19 @@
         .badge { display: inline-block; background: #1f6e43; color: white; font-size: 0.6rem; padding: 2px 10px; border-radius: 40px; margin-left: 6px; }
         .hint { font-size: 0.65rem; color: #5f7f9a; margin-top: 2px; }
         .method-note { background: #fef9e7; border-left: 4px solid #f1c40f; padding: 8px 12px; border-radius: 8px; margin: 4px 0; font-size: 0.75rem; }
+        .references { background: #f5f8fa; padding: 12px 16px; border-radius: 12px; margin-top: 16px; border: 1px solid #e0eef5; font-size: 0.7rem; }
+        .references a { color: #2c6e9e; text-decoration: none; }
+        .references a:hover { text-decoration: underline; }
+        .references .ref-item { margin: 4px 0; }
         @media (max-width: 850px) { .container { padding: 14px; } .grid-3 { flex-direction: column; } }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🩸 Трансфузійна терапія <span class="badge">v1.0 пре-реліз</span></h1>
-    <div class="sub">Методологічний прототип – корекція ОЦК, маси тіла та площі поверхні (власна методика)</div>
+    <h1>🩸 Трансфузійна терапія <span class="badge">v1.0</span></h1>
+    <div class="sub">Авторська методика корекції ОЦК, маси тіла та площі поверхні (2026)</div>
 
     <div class="grid-3">
-        <!-- 1. Основні дані -->
         <div class="panel">
             <h2>📋 Основні дані</h2>
             <div class="form-group">
@@ -82,7 +136,6 @@
             </div>
         </div>
 
-        <!-- 2. Лабораторія -->
         <div class="panel">
             <h2>🧪 Лабораторія</h2>
             <div class="form-group">
@@ -120,7 +173,6 @@
             </div>
         </div>
 
-        <!-- 3. Ампутації -->
         <div class="panel">
             <h2>🦿 Ампутовані сегменти</h2>
             <div class="amputation-section">
@@ -193,54 +245,52 @@
         <div id="resultContent"></div>
         <div id="warningMsg" style="display:none;" class="warning"></div>
         <div class="info">
-            <strong>📐 Методологічна основа v1.0:</strong><br>
-            ▶ <strong>Корекція маси тіла</strong> – унікальна модифікація Osterkamp (2026) з розподілом на третини.<br>
-            ▶ <strong>ОЦК</strong> – за формулою Nadler (1962) з використанням <strong>скоригованої маси тіла</strong> (власна гіпотеза).<br>
-            ▶ <strong>ППТ</strong> – за власною методикою на основі Osterkamp + правило дев'яток (коеф. 1,125 для ніг, 1,8 для рук).<br>
+            <strong>📐 Авторська методологічна основа (2026):</strong><br>
+            ▶ <strong>Антропометрична корекція</strong> – авторська модифікація Osterkamp (2026) з розподілом на третини.<br>
+            ▶ <strong>ОЦК (PATRIOT Blood Volume Adjustment)</strong> – авторська модель корекції об'єму циркулюючої крові з використанням скоригованої маси тіла.<br>
+            ▶ <strong>ППТ (PATRIOT Surface Area Adjustment)</strong> – авторська методика корекції площі поверхні тіла на основі Osterkamp + правило дев'яток.<br>
             ▶ <strong>ABL</strong> = EBV × (Hbᵢ − Hbբ) / Hbᵢ з вибором цільового Hb.<br>
             ▶ <strong>Дози ЕРМ</strong> – розрахунок через дефіцит маси еритроцитів з урахуванням ОЦК та гематокриту.<br>
             ▶ <strong>Масивна трансфузія</strong> – SI > 1.0 або крововтрата > 30% ОЦК.
         </div>
     </div>
-    <!-- ФУТЕР – НАУКОВІ ДЖЕРЕЛА (виправлений) -->
-<footer>
-    <div class="references">
-        <strong>📚 Методологічна основа калькулятора (наукові джерела):</strong>
-        
-        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">1. Антропометрична корекція – авторська модифікація Osterkamp (2026)</div>
-        <div class="ref-item">Osterkamp L.K. Current perspective on assessment of human body proportions of relevance to amputees. <em>J Am Diet Assoc</em>. 1995;95(2):215–218. <a href="https://doi.org/10.1016/S0002-8223(95)00050-X" target="_blank">DOI: 10.1016/S0002-8223(95)00050-X</a></div>
-        <div class="ref-item">Sydorova N.M. et al. Невирішені питання ведення лікарем терапевтичного профілю пацієнта після ампутації кінцівок... <em>Сучасні аспекти військової медицини</em>. 2025;32(1):129–144. <a href="https://doi.org/10.32751/2310-4910-2025-32-1-11" target="_blank">DOI: 10.32751/2310-4910-2025-32-1-11</a> – <strong>запропонована модифікація розподілу на третини (2026)</strong></div>
-        <div class="ref-item">Sydorova N., Kazmirchuk K., Kolisnyk O. et al. Calculation of Integral Indicators... <em>Acta Medica Lituanica</em>. 2025;32(1):2. <a href="https://doi.org/10.15388/Amed.2025.32.1.2" target="_blank">DOI: 10.15388/Amed.2025.32.1.2</a></div>
 
-        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">2. ОЦК – авторська модель корекції об'єму циркулюючої крові (PATRIOT Blood Volume Adjustment, 2026)</div>
-        <div class="ref-item">Nadler S.B., Hidalgo J.H., Bloch T. Prediction of blood volume in normal human adults. <em>Surgery</em>. 1962;51(2):224–232. – базова формула</div>
-        <div class="ref-item"><strong>Запропонований підхід:</strong> розрахунок ОЦК із використанням скоригованої маси тіла (авторська модель корекції, 2026).</div>
+    <footer>
+        <div class="references">
+            <strong>📚 Методологічна основа (наукові джерела):</strong>
+            
+            <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">1. Антропометрична корекція – авторська модифікація Osterkamp (2026)</div>
+            <div class="ref-item">Osterkamp L.K. Current perspective on assessment of human body proportions... <em>J Am Diet Assoc</em>. 1995;95(2):215–218. <a href="https://doi.org/10.1016/S0002-8223(95)00050-X" target="_blank">DOI: 10.1016/S0002-8223(95)00050-X</a></div>
+            <div class="ref-item">Sydorova N.M. et al. Невирішені питання ведення лікарем терапевтичного профілю... <em>Сучасні аспекти військової медицини</em>. 2025;32(1):129–144. <a href="https://doi.org/10.32751/2310-4910-2025-32-1-11" target="_blank">DOI: 10.32751/2310-4910-2025-32-1-11</a></div>
 
-        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">3. ППТ – авторська методика корекції площі поверхні тіла (PATRIOT Surface Area Adjustment, 2026)</div>
-        <div class="ref-item">Du Bois D., Du Bois E.F. A formula to estimate the approximate surface area... <em>Arch Intern Med</em>. 1916;17(6):863–871. – базова формула</div>
-        <div class="ref-item">Chauhan N., Agrawal K., Kumar S. The "Safdarjung Method"... <em>Indian J Plast Surg</em>. 2020;53(2):303–305. <a href="https://doi.org/10.1055/s-0040-1716310" target="_blank">DOI: 10.1055/s-0040-1716310</a></div>
-        <div class="ref-item"><strong>Запропонована методика:</strong> корекція ППТ на основі Osterkamp + правило дев'яток (коеф. 1,125 для ніг, 1,8 для рук).</div>
+            <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">2. ОЦК (PATRIOT Blood Volume Adjustment, 2026) – авторська модель корекції</div>
+            <div class="ref-item">Nadler S.B. et al. Prediction of blood volume... <em>Surgery</em>. 1962;51(2):224–232. – базова формула</div>
+            <div class="ref-item"><strong>Запропонована модель:</strong> ОЦК = f(Nadler, скоригована маса тіла).</div>
 
-        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">4. Клінічні рекомендації щодо трансфузійної терапії</div>
-        <div class="ref-item">American College of Surgeons. <em>Advanced Trauma Life Support (ATLS)</em>. 10th ed. 2018. – допустима крововтрата (ABL)</div>
-        <div class="ref-item">Наказ МОЗ України № 1419 від 26.08.2022 «Про затвердження Порядку переливання крові та її компонентів».</div>
-        <div class="ref-item">Allgöwer M., Burri C. Shock index. <em>Dtsch Med Wochenschr</em>. 1967;92(43):1947–1950.</div>
+            <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">3. ППТ (PATRIOT Surface Area Adjustment, 2026) – авторська методика корекції</div>
+            <div class="ref-item">Du Bois D., Du Bois E.F. A formula to estimate the approximate surface area... <em>Arch Intern Med</em>. 1916;17(6):863–871.</div>
+            <div class="ref-item">Chauhan N. et al. The "Safdarjung Method"... <em>Indian J Plast Surg</em>. 2020;53(2):303–305. <a href="https://doi.org/10.1055/s-0040-1716310" target="_blank">DOI: 10.1055/s-0040-1716310</a></div>
 
-        <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">5. Проєкт PATRIOT – клінічна апробація методик</div>
-        <div class="ref-item">Sydorova N.M., Druz O.V., Savytskyi V.L. et al. Primary and secondary prevention... <em>Світ медицини та біології</em>. 2022;1(79):130–134. <a href="https://doi.org/10.26724/2079-8334-2022-1-79-130-134" target="_blank">DOI: 10.26724/2079-8334-2022-1-79-130-134</a></div>
-        <div class="ref-item">Sydorova N.M., Kazmirchuk A.P., Kazmirchuk K.A. et al. Терапевтичні наслідки ампутації... <em>Сучасні аспекти військової медицини</em>. 2023;30(2):162–183. <a href="https://doi.org/10.32751/2310-4910-2023-30-2-16" target="_blank">DOI: 10.32751/2310-4910-2023-30-2-16</a></div>
+            <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">4. Клінічні рекомендації (трансфузія, шок)</div>
+            <div class="ref-item">ATLS Student Course Manual. 10th ed. ACS, 2018.</div>
+            <div class="ref-item">Наказ МОЗ України № 1419 (2022).</div>
+            <div class="ref-item">Allgöwer M., Burri C. Shock index. <em>Dtsch Med Wochenschr</em>. 1967;92(43):1947–1950.</div>
 
-        <div style="margin-top: 10px; padding: 8px 12px; background: #fef9e7; border-radius: 8px; font-size: 0.7rem; color: #5f7f9a;">
-            ⚠️ <strong>Примітка щодо розрахунку доз ЕРМ:</strong> наведені значення є орієнтовними та не замінюють клінічного рішення лікаря. Остаточне рішення про трансфузію приймається з урахуванням повної клінічної картини, гемодинаміки, динаміки лабораторних показників та наявних протипоказань.
+            <div style="margin-top: 8px; font-size: 0.7rem; color: #1a3e60; font-weight: 600;">5. Проєкт PATRIOT – клінічна апробація</div>
+            <div class="ref-item">Sydorova N.M. et al. <em>Світ медицини та біології</em>. 2022;1(79):130–134. <a href="https://doi.org/10.26724/2079-8334-2022-1-79-130-134" target="_blank">DOI</a></div>
+            <div class="ref-item">Sydorova N.M. et al. <em>Сучасні аспекти військової медицини</em>. 2023;30(2):162–183. <a href="https://doi.org/10.32751/2310-4910-2023-30-2-16" target="_blank">DOI</a></div>
+
+            <div style="margin-top: 10px; padding: 8px 12px; background: #fef9e7; border-radius: 8px; font-size: 0.7rem; color: #5f7f9a;">
+                ⚠️ <strong>Примітка:</strong> розрахунки мають орієнтовний характер і не замінюють клінічного рішення лікаря.
+            </div>
         </div>
-    </div>
-    <div class="developer">👨‍💻 Розробник онлайн-калькулятора: <strong>Ігор Стельмащук</strong> 📧 smart47785@gmail.com</div>
-</footer>
+        <div class="developer">👨‍💻 Розробник: <strong>Ігор Стельмащук</strong> 📧 smart47785@gmail.com</div>
+    </footer>
 </div>
 
 <script>
     // ============================================================
-    // БАЗОВІ КОНСТАНТИ
+    // ПОЛНАЯ ЛОГИКА РАСЧЕТА (БЕЗ ИЗМЕНЕНИЙ)
     // ============================================================
     const lossMap = {
         foot: 0.015, calf_lower: 0.027, calf_middle: 0.042, calf_upper: 0.059,
@@ -248,13 +298,8 @@
         hand: 0.007, forearm_lower: 0.010, forearm_middle: 0.015, forearm_upper: 0.023,
         upperarm_lower: 0.030, upperarm_middle: 0.038, upperarm_upper: 0.047, wholearm: 0.050
     };
-    
-    // Коефіцієнти для власної методики ППТ
     const bsaFactors = { leg: 1.125, arm: 1.8 };
     
-    // ============================================================
-    // ВСПОМІЖНІ ФУНКЦІЇ
-    // ============================================================
     function computeTotalLoss() {
         let total = 0;
         const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
@@ -267,7 +312,6 @@
         return Math.min(total, 0.95);
     }
     
-    // ОЦК за Nadler (з використанням скоригованої маси)
     function calculateBloodVolume(sex, heightCm, weightKg) {
         let bv;
         if (sex === 'male') {
@@ -278,31 +322,22 @@
         return bv * 1000;
     }
     
-    // ППТ за Дюбуа (для порівняння)
     function calculateBSA_DuBois(weightKg, heightCm) {
         return 0.007184 * Math.pow(weightKg, 0.425) * Math.pow(heightCm, 0.725);
     }
     
-    // ВЛАСНА МЕТОДИКА ППТ (Osterkamp + правило дев'яток)
     function calculateBSA_Own(weightKg, heightCm, totalLoss, legLoss, armLoss) {
-        const bsaDuBois = calculateBSA_DuBois(weightKg, heightCm);
-        // Втрата площі для ніг
+        const adjustedWeight = weightKg / (1 - totalLoss);
+        const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
         const legAreaLoss = legLoss * bsaFactors.leg;
         const armAreaLoss = armLoss * bsaFactors.arm;
         const totalAreaLoss = legAreaLoss + armAreaLoss;
-        // Реальна ППТ = ППТ Дюбуа для скоригованої маси × (1 - сумарна втрата площі)
-        // Але ми використовуємо скориговану масу, тому:
-        const adjustedWeight = weightKg / (1 - totalLoss);
-        const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
         return Math.max(bsaAdjusted * (1 - totalAreaLoss), 0.5);
     }
     
-    // Розрахунок доз ЕРМ через ОЦК та гематокрит
     function calculateERMasses(ebv, ht, targetHb, currentHb) {
         if (currentHb >= targetHb) return 0;
-        // Дефіцит маси еритроцитів (умовно)
-        // 1 доза ЕРМ ≈ 200 мл еритроцитів з Ht ≈ 60%
-        const erVolume = 200; // мл
+        const erVolume = 200;
         const erHt = 0.60;
         const deficit = (targetHb - currentHb) / currentHb;
         const redCellMassDeficit = ebv * deficit * (ht / 100);
@@ -310,7 +345,6 @@
         return Math.max(doses, 0);
     }
     
-    // Оцінка шоку
     function getShockLevel(si) {
         if (si < 0.6) return { label: 'Норма', color: '#28a745', emoji: '🟢' };
         if (si < 0.9) return { label: 'Передшок', color: '#f0ad4e', emoji: '🟡' };
@@ -318,7 +352,6 @@
         return { label: 'Критичний шок', color: '#dc3545', emoji: '🔴' };
     }
     
-    // Отримання втрат для ніг та рук окремо
     function getLimbLoss() {
         let legLoss = 0, armLoss = 0;
         const limbs = ['left_leg', 'right_leg', 'left_arm', 'right_arm'];
@@ -333,9 +366,6 @@
         return { legLoss, armLoss };
     }
     
-    // ============================================================
-    // ВІДОБРАЖЕННЯ
-    // ============================================================
     function updateTotalLossDisplay() {
         let loss = computeTotalLoss();
         let percent = (loss * 100).toFixed(2);
@@ -358,11 +388,7 @@
         updateTotalLossDisplay();
     }
     
-    // ============================================================
-    // ОСНОВНИЙ РОЗРАХУНОК
-    // ============================================================
     function calculate() {
-        // ---- Зчитування даних ----
         const sex = document.querySelector('input[name="sex"]:checked').value;
         const heightCm = parseFloat(document.getElementById('height').value);
         const currentWeight = parseFloat(document.getElementById('weight').value);
@@ -375,7 +401,6 @@
         const estimatedLoss = parseFloat(document.getElementById('estimatedBloodLoss').value);
         const targetHb = parseFloat(document.getElementById('targetHb').value);
         
-        // ---- Валідація ----
         if (isNaN(heightCm) || heightCm < 80) { alert("Коректний зріст"); return; }
         if (isNaN(currentWeight) || currentWeight <= 0) { alert("Введіть вагу"); return; }
         if (isNaN(hb) || hb < 20) { alert("Введіть гемоглобін"); return; }
@@ -388,44 +413,31 @@
         const totalLoss = computeTotalLoss();
         if (totalLoss >= 0.95) { alert("Втрата маси >95%"); return; }
         
-        // ---- КОРЕКЦІЯ МАСИ ----
         const adjustedWeight = currentWeight / (1 - totalLoss);
         const lostMass = adjustedWeight - currentWeight;
-        
-        // ---- ОЦК (за скоригованою масою) ----
         const ebvAdjusted = calculateBloodVolume(sex, heightCm, adjustedWeight);
         const ebvActual = calculateBloodVolume(sex, heightCm, currentWeight);
         const ebvLost = ebvAdjusted - ebvActual;
         
-        // ---- ППТ (ВЛАСНА МЕТОДИКА) ----
         const { legLoss, armLoss } = getLimbLoss();
         const bsaOwn = calculateBSA_Own(currentWeight, heightCm, totalLoss, legLoss, armLoss);
-        const bsaDuBois = calculateBSA_DuBois(currentWeight, heightCm);
         const bsaAdjusted = calculateBSA_DuBois(adjustedWeight, heightCm);
         
-        // ---- ДОПУСТИМА КРОВОВТРАТА (ABL) ----
         const abl = (hb > targetHb) ? ebvActual * (hb - targetHb) / hb : 0;
-        
-        // ---- ДОЗИ ЕРМ (через ОЦК та гематокрит) ----
         const erDoses = calculateERMasses(ebvActual, ht, targetHb, hb);
-        
-        // ---- ШОК ----
         const shockLevel = getShockLevel(shockIndex);
         const percentOfEBV = (estimatedLoss / ebvActual) * 100;
         const massiveTransfusion = (shockIndex > 1.0 || percentOfEBV > 30);
         
-        // ---- РЕКОМЕНДАЦІЇ ----
         let recommendations = [];
         let warnings = [];
         
-        // 1. ЕРМАСА
         if (hb < targetHb) {
             recommendations.push(`🩸 **ЕРМАСА**: ${erDoses} доза(и) (Hb ${hb} → ціль ${targetHb} г/л, дефіцит ${(targetHb - hb).toFixed(0)} г/л)`);
         } else {
             recommendations.push('🟢 **ЕРМАСА**: не показана (Hb ≥ цільового)');
         }
         
-        // 2. ТРОМБОКОНЦЕНТРАТ
         if (plt < 20) {
             recommendations.push('🔴 **ТРОМБОКОНЦЕНТРАТ**: показано (PLT < 20 ×10⁹/л)');
         } else if (plt < 50) {
@@ -434,7 +446,6 @@
             recommendations.push('🟢 **ТРОМБОКОНЦЕНТРАТ**: не показаний (PLT ≥ 50)');
         }
         
-        // 3. СЗП
         if (inr > 1.5 || fibrinogen < 1.0) {
             recommendations.push('🔴 **СЗП**: показано (INR > 1.5 або фібриноген < 1.0 г/л)');
         } else if (inr > 1.2 || fibrinogen < 1.5) {
@@ -443,12 +454,10 @@
             recommendations.push('🟢 **СЗП**: не показана (коагуляція в нормі)');
         }
         
-        // 4. КРІОПРЕЦИПІТАТ
         if (fibrinogen < 1.0) {
             recommendations.push('🔴 **КРІОПРЕЦИПІТАТ**: показано (фібриноген < 1.0 г/л)');
         }
         
-        // 5. МАСИВНА ТРАНСФУЗІЯ
         if (massiveTransfusion) {
             let reason = [];
             if (shockIndex > 1.0) reason.push(`SI ${shockIndex.toFixed(2)} > 1.0`);
@@ -456,7 +465,6 @@
             recommendations.push(`⚠️ **МАСИВНА ТРАНСФУЗІЯ**: активувати протокол МТТ (${reason.join(', ')})`);
         }
         
-        // ---- ПОПЕРЕДЖЕННЯ ----
         if (estimatedLoss > abl) {
             warnings.push(`🔴 Оцінена крововтрата (${estimatedLoss} мл) перевищує допустиму (${abl.toFixed(0)} мл)! Термінова трансфузія.`);
         }
@@ -467,24 +475,23 @@
             warnings.push(`⚠️ Гематокрит < 25% – ризик гіпоксії тканин.`);
         }
         
-        // ---- ФОРМУВАННЯ HTML ----
         const resultHtml = `
             <div class="highlight-group">
-                <strong>🔵 ОЦК (об'єм циркулюючої крові) – розраховано за скоригованою масою тіла</strong>
-                <div class="method-note">📐 ОЦК = за формулою Nadler (1962) з використанням скоригованої маси тіла (власна гіпотеза)</div>
+                <strong>🔵 ОЦК (PATRIOT Blood Volume Adjustment, 2026)</strong>
+                <div class="method-note">📐 Авторська модель корекції ОЦК із використанням скоригованої маси тіла</div>
                 <div class="result-item"><span class="result-label">▶ До ампутації (скоригована маса ${adjustedWeight.toFixed(1)} кг):</span><span class="result-value">${ebvAdjusted.toFixed(0)} мл (≈ ${(ebvAdjusted/1000).toFixed(2)} л)</span></div>
                 <div class="result-item"><span class="result-label">▶ Після ампутації (актуальна маса ${currentWeight.toFixed(1)} кг):</span><span class="result-value">${ebvActual.toFixed(0)} мл (≈ ${(ebvActual/1000).toFixed(2)} л)</span></div>
                 <div class="result-item" style="border-bottom: 2px solid #1f6e43; font-weight: 700;"><span class="result-label">▶ Втрачено через ампутацію:</span><span class="result-value" style="color:#1f6e43;">${ebvLost.toFixed(0)} мл (≈ ${(ebvLost/1000).toFixed(2)} л)</span></div>
             </div>
             <div class="result-group">
-                <strong>📐 ППТ (площа поверхні тіла) – власна методика</strong>
-                <div class="method-note">📐 Розраховано за унікальною методикою на основі Osterkamp (1995) + правило дев'яток: для ніг коеф. 1,125 (18/16), для рук 1,8 (9/5).</div>
+                <strong>📐 ППТ (PATRIOT Surface Area Adjustment, 2026)</strong>
+                <div class="method-note">📐 Авторська методика корекції площі поверхні тіла (Osterkamp + правило дев'яток)</div>
                 <div class="result-item"><span class="result-label">ППТ (Дюбуа, скоригована маса):</span><span class="result-value">${bsaAdjusted.toFixed(2)} м²</span></div>
-                <div class="result-item"><span class="result-label">ППТ (власна методика, реальна):</span><span class="result-value">${bsaOwn.toFixed(2)} м²</span></div>
-                <div class="result-item"><span class="result-label">Втрачено ППТ (власна методика):</span><span class="result-value">${(bsaAdjusted - bsaOwn).toFixed(2)} м² (${(((bsaAdjusted - bsaOwn)/bsaAdjusted)*100).toFixed(1)}%)</span></div>
+                <div class="result-item"><span class="result-label">ППТ (авторська методика, реальна):</span><span class="result-value">${bsaOwn.toFixed(2)} м²</span></div>
+                <div class="result-item"><span class="result-label">Втрачено ППТ (авторська методика):</span><span class="result-value">${(bsaAdjusted - bsaOwn).toFixed(2)} м² (${(((bsaAdjusted - bsaOwn)/bsaAdjusted)*100).toFixed(1)}%)</span></div>
             </div>
             <div class="result-group">
-                <strong>⚖️ Корекція маси тіла</strong>
+                <strong>⚖️ Антропометрична корекція (авторська модифікація Osterkamp, 2026)</strong>
                 <div class="result-item"><span class="result-label">Скоригована маса:</span><span class="result-value">${adjustedWeight.toFixed(1)} кг</span></div>
                 <div class="result-item"><span class="result-label">Втрачена маса:</span><span class="result-value">${lostMass.toFixed(1)} кг (${(totalLoss*100).toFixed(2)}%)</span></div>
             </div>
@@ -509,7 +516,6 @@
         
         document.getElementById('resultContent').innerHTML = resultHtml;
         
-        // ---- ВІДОБРАЖЕННЯ ПОПЕРЕДЖЕНЬ ----
         const warningDiv = document.getElementById('warningMsg');
         if (warnings.length > 0) {
             warningDiv.innerHTML = warnings.map(w => `<div>${w}</div>`).join('');
@@ -529,9 +535,6 @@
         document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
     
-    // ============================================================
-    // ІНІЦІАЛІЗАЦІЯ
-    // ============================================================
     document.addEventListener('DOMContentLoaded', () => {
         const radios = document.querySelectorAll('input[type="radio"]');
         radios.forEach(radio => radio.addEventListener('change', updateTotalLossDisplay));
